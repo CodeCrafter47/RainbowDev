@@ -60,3 +60,4 @@ unzip -n libs/netty-all-4.0.18.Final.jar -d classes/
 unzip -n libs/trove4j-3.0.3.jar -d classes/
 jar cvmf src/META-INF/MANIFEST.MF Rainbow-v$RAINBOW_VERSION-patched.jar -C classes . || exit 1
 rm -r classes/
+echo "successfully patched rainbow"
