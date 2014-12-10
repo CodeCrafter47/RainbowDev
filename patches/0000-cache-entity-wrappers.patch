@@ -1,0 +1,32 @@
+Reduces new memory allocation by storing the wrapper instance with the entity.
+
+diff --git a/src/WrapperObjects/Entities/EntityHelper.java b/src/WrapperObjects/
+index 7797897..ab7326f 100644
+--- a/src/WrapperObjects/Entities/EntityHelper.java
++++ b/src/WrapperObjects/Entities/EntityHelper.java
+@@ -30,6 +30,12 @@ public class EntityHelper {
+     public EntityHelper() {}
+ 
+     public static EntityWrapper CreateEntityWrapper(EntityGeneric ent) {
++       if(ent == null)return null;
++       if(ent.wrapper != null)return ent.wrapper;
++       return (ent.wrapper = old_CreateEntityWrapper(ent));
++    }
++
++    public static EntityWrapper old_CreateEntityWrapper(EntityGeneric ent) {
+         return (EntityWrapper) (ent == null
+                 ? null
+                 : (ent instanceof EntityPlayer
+diff --git a/src/joebkt/EntityGeneric.java b/src/joebkt/EntityGeneric.java
+index 7fb925f..0db7684 100644
+--- a/src/joebkt/EntityGeneric.java
++++ b/src/joebkt/EntityGeneric.java
+@@ -66,6 +66,8 @@ import net.minecraft.server.MinecraftServer;
+ 
+ 
+ public abstract class EntityGeneric implements CommandSender {
++       
++       public EntityWrapper wrapper = null;
+ 
+     private static final AxisAlignedBB a = new AxisAlignedBB(0.0D, 0.0D, 0.0D,
+             0.0D, 0.0D, 0.0D);

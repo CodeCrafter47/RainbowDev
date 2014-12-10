@@ -1,0 +1,122 @@
+diff --git a/src/joebkt/ByteData.java b/src/joebkt/ByteData.java
+index 1e376af..d59f6a3 100644
+--- a/src/joebkt/ByteData.java
++++ b/src/joebkt/ByteData.java
+@@ -824,16 +824,4 @@ public class ByteData extends ByteBuf {
+     public boolean release(int var1) {
+         return this.m_byteBuf.release(var1);
+     }
+-
+-    // $FF: synthetic method
+-    // $FF: bridge method
+-    public ReferenceCounted retain() {
+-        return this.retain();
+-    }
+-
+-    // $FF: synthetic method
+-    // $FF: bridge method
+-    public ReferenceCounted retain(int var1) {
+-        return this.retain(var1);
+-    }
+ }
+diff --git a/src/joebkt/HumanEntermanGoalMaybe.java b/src/joebkt/HumanEntermanGoalMaybe.java
+index 9baa679..42ffba0 100644
+--- a/src/joebkt/HumanEntermanGoalMaybe.java
++++ b/src/joebkt/HumanEntermanGoalMaybe.java
+@@ -90,7 +90,7 @@ class HumanEntermanGoalMaybe extends FollowAttackGoalRelated {
+ 
+                     this.i = 0;
+                 } else if (this.d_entLiving.getSquareDistanceTo(this.j) > 256.0D
+-                        && this.i++ >= 30 && this.j.b(this.d_entLiving)) {
++                        && this.i++ >= 30 && this.j.b((EntityGeneric)this.d_entLiving)) {
+                     this.i = 0;
+                 }
+             }
+diff --git a/src/joebkt/_CmdIgnore.java b/src/joebkt/_CmdIgnore.java
+index c89273d..564b949 100644
+--- a/src/joebkt/_CmdIgnore.java
++++ b/src/joebkt/_CmdIgnore.java
+@@ -34,7 +34,7 @@ public class _CmdIgnore extends CommandAbstract {
+     public static boolean AddIgnore(String pName, String pAnnoying) {
+         pName = pName.toLowerCase();
+         pAnnoying = pAnnoying.toLowerCase();
+-        Object res = (List) ignoring.get(pName);
++        List<String> res = ignoring.get(pName);
+ 
+         if (res == null) {
+             res = new ArrayList();
+diff --git a/src/joebkt/_UUIDMapper.java b/src/joebkt/_UUIDMapper.java
+index c4a6153..ca33378 100644
+--- a/src/joebkt/_UUIDMapper.java
++++ b/src/joebkt/_UUIDMapper.java
+@@ -92,7 +92,7 @@ public class _UUIDMapper {
+     }
+ 
+     public static void AddMaptoNameList(String pName, String uuid) {
+-        Object nameList = (List) UUIDToNameList.get(uuid);
++        List<String> nameList = UUIDToNameList.get(uuid);
+ 
+         if (nameList == null) {
+             nameList = new ArrayList();
+diff --git a/src/joebkt/gz.java b/src/joebkt/gz.java
+index 3f07f16..b362b80 100644
+--- a/src/joebkt/gz.java
++++ b/src/joebkt/gz.java
+@@ -3,8 +3,7 @@ package joebkt;
+ 
+ enum gz {
+ 
+-   // $FF: synthetic field
+-   private static final gz[] ENUM$VALUES = new gz[0];
++   ;
+ 
+ 
+    private gz(String var1, int var2) {}
+diff --git a/src/joebkt/rr.java b/src/joebkt/rr.java
+index f1a94a2..3d3659d 100644
+--- a/src/joebkt/rr.java
++++ b/src/joebkt/rr.java
+@@ -19,10 +19,4 @@ class rr implements ChannelFutureListener {
+         this.m_capcom.m_packetHandler.funcRelatedToCompress(
+                 PlayerCapCom.a(this.m_capcom).getNetworkCompressionThreshold());
+     }
+-
+-    // $FF: synthetic method
+-    // $FF: bridge method
+-    public void operationComplete(Future var1) throws Exception {
+-        this.operationComplete((ChannelFuture) var1);
+-    }
+ }
+diff --git a/src/joebkt/tk.java b/src/joebkt/tk.java
+index 3533d26..b14fdcd 100644
+--- a/src/joebkt/tk.java
++++ b/src/joebkt/tk.java
+@@ -35,11 +35,11 @@ public class tk extends Stat {
+         this.a = var3;
+         this.b = var4;
+         if (var3 < Achievement.a) {
+-            a = var3;
++            Achievement.a = var3;
+         }
+ 
+         if (var4 < Achievement.b) {
+-            b = var4;
++            Achievement.b = var4;
+         }
+ 
+         if (var3 > Achievement.c) {
+diff --git a/src/joebkt/FileIOThread.java b/src/joebkt/FileIOThread.java
+index 06f6b99..0bad407 100644
+--- a/src/joebkt/FileIOThread.java
++++ b/src/joebkt/FileIOThread.java
+@@ -27,7 +27,9 @@ public class FileIOThread implements Runnable {
+     }
+ 
+     public void run() {
+-        this.ioProcessLoop();
++        while(true){
++            this.ioProcessLoop();
++        }
+     }
+ 
+     private void ioProcessLoop() {

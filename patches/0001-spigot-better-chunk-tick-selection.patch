@@ -1,0 +1,196 @@
+diff --git a/src/joebkt/World.java b/src/joebkt/World.java
+index bcd06f5..134cb6b 100644
+--- a/src/joebkt/World.java
++++ b/src/joebkt/World.java
+@@ -116,7 +116,6 @@ public abstract class World implements WorldInterface {
+     private final Calendar m_calendar = Calendar.getInstance();
+     protected Scoreboard scoreboard = new Scoreboard();
+     public final boolean isStatic;
+-    public List<Object> chunksVisibleToPlayers = new ArrayList();
+     private int K;
+     protected boolean F;
+     protected boolean G;
+@@ -124,6 +123,30 @@ public abstract class World implements WorldInterface {
+     private final ClassRelatedToGrowShrink m_growShrinkObject;
+     int[] H;
+     long msLastMobWarn = 0L;
++    
++    // Spigot start
++    protected final gnu.trove.map.hash.TLongShortHashMap chunkTickList;
++    protected float growthOdds = 100;
++    protected float modifiedOdds = 100;
++    private final byte chunkTickRadius;
++    
++    public static long chunkToKey(int x, int z)
++    {
++        long k = ( ( ( (long) x ) & 0xFFFF0000L ) << 16 ) | ( ( ( (long) x ) & 0x0000FFFFL ) << 0 );
++        k     |= ( ( ( (long) z ) & 0xFFFF0000L ) << 32 ) | ( ( ( (long) z ) & 0x0000FFFFL ) << 16 );
++        return k;
++    }
++    
++    public static int keyToX(long k)
++    {
++        return (int) ( ( ( k >> 16 ) & 0xFFFF0000 ) | ( k & 0x0000FFFF ) );
++    }
++    
++    public static int keyToZ(long k)
++    {
++        return (int) ( ( ( k >> 32 ) & 0xFFFF0000L ) | ( ( k >> 16 ) & 0x0000FFFF ) );
++    }
++    // Spigot end
+ 
+     protected World(IDataManager var1, WorldData argWorldData, WorldProvider var3, MethodProfiler var4, boolean someFlag) {
+         this.K = this.random.nextInt(12000);
+@@ -136,6 +159,11 @@ public abstract class World implements WorldInterface {
+         this.worldProvider = var3;
+         this.isStatic = someFlag;
+         this.m_growShrinkObject = var3.r();
++        // Spigot start
++        this.chunkTickRadius = (byte) ( (_JoeUtils.GetViewDistance() < 7 ) ? _JoeUtils.GetViewDistance() : 7 );
++        this.chunkTickList = new gnu.trove.map.hash.TLongShortHashMap( 650 * 5, 0.7f, Long.MIN_VALUE, Short.MIN_VALUE );
++        this.chunkTickList.setAutoCompactionFactor( 0 );
++        // Spigot end
+     }
+ 
+     public World prepareWorldAndReturnObject() {
+@@ -1935,9 +1963,24 @@ public abstract class World implements WorldInterface {
+     }
+ 
+     protected void refreshChunkList() {
+-        this.chunksVisibleToPlayers.clear();
+         this.methodProfiler.capture("buildList");
+-
++        
++        // Spigot start
++        int optimalChunks = 650;
++        // Quick conditions to allow us to exist early
++        if ( optimalChunks <= 0 || humanEntities.isEmpty() )
++        {
++           return;
++        }
++        // Keep chunks with growth inside of the optimal chunk range
++        int chunksPerPlayer = Math.min( 200, Math.max( 1, (int) ( ( ( optimalChunks - humanEntities.size() ) / (double) humanEntities.size() ) + 0.5 ) ) );
++        int randRange = 3 + chunksPerPlayer / 30;
++        // Limit to normal tick radius - including view distance
++        randRange = ( randRange > chunkTickRadius ) ? chunkTickRadius : randRange;
++        // odds of growth happening vs growth happening in vanilla
++        this.growthOdds = this.modifiedOdds = Math.max( 35, Math.min( 100, ( ( chunksPerPlayer + 1 ) * 100F ) / 15F ) );
++        // Spigot end
++        
+         int var1;
+         EntityHuman var2;
+         int var3;
+@@ -1950,12 +1993,27 @@ public abstract class World implements WorldInterface {
+             var4 = MathHelper.floor_of_double(var2.zCoord / 16.0D);
+             var5 = this.getViewDistance();
+ 
+-            for (int var6 = -var5; var6 <= var5; ++var6) {
+-                for (int var7 = -var5; var7 <= var5; ++var7) {
+-                    this.chunksVisibleToPlayers.add(
+-                            new ChunkCoordIntPair(var6 + var3, var7 + var4));
+-                }
+-            }
++           // Spigot start - Always update the chunk the player is on
++            long key = chunkToKey(var3, var4);
++            int existingPlayers = Math.max(0, chunkTickList.get(key)); // filter
++            															// out
++            															// -1
++            chunkTickList.put(key, (short) (existingPlayers + 1));
++            
++            // Check and see if we update the chunks surrounding the player this
++            // tick
++            for (int chunk = 0; chunk < chunksPerPlayer; chunk++) {
++            	int dx = (random.nextBoolean() ? 1 : -1)
++            			* random.nextInt(randRange);
++            	int dz = (random.nextBoolean() ? 1 : -1)
++            			* random.nextInt(randRange);
++            	long hash = chunkToKey(dx + var3, dz + var4);
++            	if (!chunkTickList.contains(hash)
++            			&& getChunkProvider().isChunkLoaded(dx + var3, dz + var4)) {
++            		chunkTickList.put(hash, (short) -1); // no players
++            	}
++            }
++            // Spigot End
+         }
+ 
+         this.methodProfiler.checkIfTakingTooLong();
+diff --git a/src/joebkt/WorldServer.java b/src/joebkt/WorldServer.java
+index 98fc61e..027f72f 100644
+--- a/src/joebkt/WorldServer.java
++++ b/src/joebkt/WorldServer.java
+@@ -331,12 +331,19 @@ public class WorldServer extends World implements vn {
+     protected void tickChunks() {
+         super.tickChunks();
+         if (this.worldData.getLevelType() == LevelType.debug_all_block_states) {
+-            Iterator var1 = this.chunksVisibleToPlayers.iterator();
+-
+-            while (var1.hasNext()) {
+-                ChunkCoordIntPair var2 = (ChunkCoordIntPair) var1.next();
+-
+-                this.getChunkAt(var2.m_x, var2.m_z).tickChunk(false);
++        	for (gnu.trove.iterator.TLongShortIterator iter = chunkTickList.iterator(); iter.hasNext();) {
++        		iter.advance();
++        		long chunkCoord = iter.key();
++        		int chunkX = World.keyToX(chunkCoord);
++        		int chunkZ = World.keyToZ(chunkCoord);
++        		// If unloaded, or in procedd of being unloaded, drop it
++        		if ( ( !getChunkProvider().isChunkLoaded( chunkX, chunkZ ) ) || ( this.cachedChunks.setOfChunksToSaveAndUnload.contains(Long.valueOf(ChunkCoordIntPair.combineTwoIntsIntoLong(chunkX, chunkZ))  ) ) )
++        		{
++        		   iter.remove();
++        		    continue;
++        		}
++        		// Spigot end
++        		this.getChunkAt(chunkX, chunkZ).tickChunk(false);
+             }
+         } else {
+             int var231 = 0;
+@@ -344,13 +351,23 @@ public class WorldServer extends World implements vn {
+             int randomTickSpeed = this.getGameRules().getGameRuleByName(
+                     "randomTickSpeed");
+ 
+-            for (Iterator var3 = this.chunksVisibleToPlayers.iterator(); var3.hasNext(); this.methodProfiler.checkIfTakingTooLong()) {
+-                ChunkCoordIntPair var4 = (ChunkCoordIntPair) var3.next();
+-                int var5 = var4.m_x * 16;
+-                int var6 = var4.m_z * 16;
++            for (gnu.trove.iterator.TLongShortIterator iter = chunkTickList.iterator(); iter.hasNext();) {
++            	iter.advance();
++            	long chunkCoord = iter.key();
++            	int chunkX = World.keyToX(chunkCoord);
++            	int chunkZ = World.keyToZ(chunkCoord);
++            	// If unloaded, or in procedd of being unloaded, drop it
++            	if ( ( !getChunkProvider().isChunkLoaded( chunkX, chunkZ ) ) || ( this.cachedChunks.setOfChunksToSaveAndUnload.contains(Long.valueOf(ChunkCoordIntPair.combineTwoIntsIntoLong(chunkX, chunkZ))  ) ) )
++            	{
++            	    iter.remove();
++            	    continue;
++            	}
++                // Spigot end
++            	int var5 = chunkX * 16;
++            	int var6 = chunkZ * 16;
+ 
+                 this.methodProfiler.capture("getChunk");
+-                Chunk var7_chunk = this.getChunkAt(var4.m_x, var4.m_z);
++                Chunk var7_chunk = this.getChunkAt(chunkX, chunkZ);
+ 
+                 this.doMoodSound_CheckCave(var5, var6, var7_chunk);
+                 this.methodProfiler.captureAndCheckIfTakingTooLong("tickChunk");
+@@ -423,6 +440,7 @@ public class WorldServer extends World implements vn {
+ 
+                                 if (var20.getHasBlockTick()) {
+                                     ++var231;
++                                    this.growthOdds = (iter.value() < 1) ? this.modifiedOdds : 100; // Spigot - grow fast if no players are in this chunk (value = player count)
+                                     var20.doBlockTickWrapper(this, var18, var19,
+                                             this.random);
+                                 }
+diff --git a/src/joebkt/_CmdDIW.java b/src/joebkt/_CmdDIW.java
+index 8fad73a..9fecdaa 100644
+--- a/src/joebkt/_CmdDIW.java
++++ b/src/joebkt/_CmdDIW.java
+@@ -3484,7 +3484,7 @@ public class _CmdDIW extends CommandAbstract {
+                                                     name,
+                                                     Integer.valueOf(var125),
+                                                     Integer.valueOf(
+-                                                            var124.chunksVisibleToPlayers.size()),
++                                                            var124.chunkTickList.size()),
+                                                     Integer.valueOf(
+                                                             var124.cachedChunks.getSize())}));
+                                             }

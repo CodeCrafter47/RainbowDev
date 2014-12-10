@@ -1,0 +1,100 @@
+diff --git a/src/net/minecraft/server/MinecraftServer.java b/src/net/minecraft/server/MinecraftServer.java
+index f2fbede..b678e81 100644
+--- a/src/net/minecraft/server/MinecraftServer.java
++++ b/src/net/minecraft/server/MinecraftServer.java
+@@ -167,6 +167,15 @@ public abstract class MinecraftServer implements CommandSender, Runnable, vn, wd
+     public static long g_restartCountdown = -1L;
+     public static int janitorInterval = 900;
+     public static int janitorWarnSecs = 30;
++    
++    
++    // Spigot start
++    private static int currentTick = 0;
++    private static final int TPS = 20;
++    private static final int TICK_TIME = 1000000000 / TPS;
++    private static final int SAMPLE_INTERVAL = 100;
++    public final double[] recentTps = new double[ 3 ];
++    // Spigot end
+ 
+     public MinecraftServer(File var1, Proxy var2, File var3) {
+         this.d_proxy = var2;
+@@ -519,6 +528,12 @@ public abstract class MinecraftServer implements CommandSender, Runnable, vn, wd
+                 _JoeUtils.MC_VERSION_NUMBER));
+         this.putServerIcon_InServerDetails(this.outgoingServerInfo);
+     }
++    
++    // Spigot Start
++    private static double calcTps(double avg, double exp, double tps){
++        return ( avg * exp ) + ( tps * ( 1 - exp ) );
++    }
++    // Spigot End
+ 
+     public void run() {
+         try {
+@@ -527,40 +542,34 @@ public abstract class MinecraftServer implements CommandSender, Runnable, vn, wd
+                 long var46 = 0L;
+ 
+                 this.jkc_UpdateServerPingInfo();
++                
++                // Spigot start
++                Arrays.fill( recentTps, 20 );
++                long lastTick = System.nanoTime(), catchupTime = 0, curTime, wait, tickSection = lastTick;
+ 
+                 while (this.flagKeepServerRunning) {
+-                    long var31 = getCurTimeMS();
+-                    long var5 = var31 - this.ab;
+-
+-                    if (var5 > 2000L && this.ab - this.R >= 15000L) {
+-                        m_logger.warn(
+-                                "--- Server Lag: Running {}ms behind, skipping {} ticks --- ",
+-                                new Object[] {
+-                            Long.valueOf(var5),
+-                            Long.valueOf(var5 / 50L)});
+-                        var5 = 2000L;
+-                        this.R = this.ab;
+-                    }
+-
+-                    if (var5 < 0L) {
+-                        m_logger.warn(
+-                                "Time ran backwards! Did the system time change?");
+-                        var5 = 0L;
+-                    }
+-
+-                    var46 += var5;
+-                    this.ab = var31;
+-                    if (this.worldServers[0].isEveryoneDeeplySleeping()) {
+-                        this.y();
+-                        var46 = 0L;
+-                    } else {
+-                        while (var46 > 50L) {
+-                            var46 -= 50L;
+-                            this.y();
+-                        }
+-                    }
+-
+-                    Thread.sleep(Math.max(1L, 50L - var46));
++                    this.ab = getCurTimeMS();
++                    curTime = System.nanoTime();
++					wait = TICK_TIME - (curTime - lastTick) - catchupTime;
++					if (wait > 0) {
++						Thread.sleep(wait / 1000000);
++						catchupTime = 0;
++						continue;
++					} else {
++						catchupTime = Math.min(1000000000, Math.abs(wait));
++					}
++
++					if (MinecraftServer.currentTick++ % SAMPLE_INTERVAL == 0) {
++						double currentTps = 1E9 / (curTime - tickSection)
++								* SAMPLE_INTERVAL;
++						recentTps[0] = calcTps(recentTps[0], 0.92, currentTps); // 1/exp(5sec/1min)
++						recentTps[1] = calcTps(recentTps[1], 0.9835, currentTps); // 1/exp(5sec/5min)
++						recentTps[2] = calcTps(recentTps[2], 0.9945, currentTps); // 1/exp(5sec/15min)
++						tickSection = curTime;
++					}
++					lastTick = curTime;
++
++					this.y();
+                     this.Q = true;
+                 }
+             } else {

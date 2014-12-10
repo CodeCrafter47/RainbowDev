@@ -1,0 +1,8 @@
+﻿
+classes
+decompiled
+src
+*.tmp
+*-patched.jar
+*~
+.idea

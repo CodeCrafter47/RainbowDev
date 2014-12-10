@@ -1,0 +1,80 @@
+diff --git a/src/joebkt/ChunkFile.java b/src/joebkt/ChunkFile.java
+index af45043..28efd9e 100644
+--- a/src/joebkt/ChunkFile.java
++++ b/src/joebkt/ChunkFile.java
+@@ -37,6 +37,8 @@ import org.apache.logging.log4j.Logger;
+ 
+ public class ChunkFile implements bfo_Interface_ChunkRelatedIO, InterfaceFileIORelated {
+ 
++	private java.util.LinkedHashMap<ChunkCoordIntPair, ChunkCoordAndNBT> pendingSaves = new java.util.LinkedHashMap<ChunkCoordIntPair, ChunkCoordAndNBT>(); // Spigot
++
+     private static final Logger a_logger = LogManager.getLogger();
+     private List listOfChunkCoordAndNBTs = Lists.newArrayList();
+     private List<ChunkCoordIntPair> chunkCoordSet = new ArrayList();
+@@ -54,15 +56,12 @@ public class ChunkFile implements bfo_Interface_ChunkRelatedIO, InterfaceFileIOR
+         Object var10 = this.d_obj;
+ 
+         synchronized (this.d_obj) {
+-            if (this.chunkCoordSet.contains(var5)) {
+-                for (int var7 = 0; var7 < this.listOfChunkCoordAndNBTs.size(); ++var7) {
+-                    if (((ChunkCoordAndNBT) this.listOfChunkCoordAndNBTs.get(var7)).a.equals(
+-                            var5)) {
+-                        var4 = ((ChunkCoordAndNBT) this.listOfChunkCoordAndNBTs.get(var7)).b;
+-                        break;
+-                    }
+-                }
+-            }
++        	// Spigot start
++        	ChunkCoordAndNBT pendingchunktosave = pendingSaves.get(var5);
++        	if (pendingchunktosave != null) {
++        	    var4 = pendingchunktosave.b;
++        	}
++        	// Spigot end
+         }
+ 
+         if (var4 == null) {
+@@ -130,19 +129,11 @@ public class ChunkFile implements bfo_Interface_ChunkRelatedIO, InterfaceFileIOR
+         Object var4 = this.d_obj;
+ 
+         synchronized (this.d_obj) {
+-            if (this.chunkCoordSet.contains(var1)) {
+-                for (int var41 = 0; var41 < this.listOfChunkCoordAndNBTs.size(); ++var41) {
+-                    if (((ChunkCoordAndNBT) this.listOfChunkCoordAndNBTs.get(var41)).a.equals(
+-                            var1)) {
+-                        this.listOfChunkCoordAndNBTs.set(var41,
+-                                new ChunkCoordAndNBT(var1, var2));
+-                        return;
+-                    }
+-                }
+-            }
+-
+-            this.listOfChunkCoordAndNBTs.add(new ChunkCoordAndNBT(var1, var2));
+-            this.chunkCoordSet.add(var1);
++        	// Spigot start
++        	if (this.pendingSaves.put(var1, new ChunkCoordAndNBT(var1, var2)) != null) {
++        	    return;
++        	}
++        	// Spigot end
+             FileIOThread.a().addToList(this);
+         }
+     }
+@@ -153,12 +144,13 @@ public class ChunkFile implements bfo_Interface_ChunkRelatedIO, InterfaceFileIOR
+         Object var4 = this.d_obj;
+ 
+         synchronized (this.d_obj) {
+-            if (this.listOfChunkCoordAndNBTs.isEmpty()) {
+-                return false;
+-            }
+-
+-            var1 = (ChunkCoordAndNBT) this.listOfChunkCoordAndNBTs.remove(0);
+-            this.chunkCoordSet.remove(var1.a);
++        	// Spigot start
++        	if (this.pendingSaves.isEmpty()) {
++        	    return false;
++        	}
++        	var1 = this.pendingSaves.values().iterator().next();
++        	this.pendingSaves.remove(var1.a);
++        	// Spigot end
+         }
+ 
+         if (var1 != null) {
