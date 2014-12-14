@@ -1,0 +1,47 @@
+Chunk garbage collector will unload unused chunks every 20 seconds.
+
+diff --git a/src/joebkt/WorldServer.java b/src/joebkt/WorldServer.java
+index 027f72f..e635f4e 100644
+--- a/src/joebkt/WorldServer.java
++++ b/src/joebkt/WorldServer.java
+@@ -132,6 +132,8 @@ public class WorldServer extends World implements vn {
+                 10)}));
+     private List toBeTicked = Lists.newArrayList();
+     public int dimensionSetAtCreate = -2;
++    private int chunkLoadCount = 0;
++    private int chunkGCTickCount;
+ 
+     public WorldServer(MinecraftServer argServer, IDataManager var2, WorldData argWorldData, int argDimension, MethodProfiler var5) {
+         super(var2, argWorldData,
+@@ -247,6 +249,31 @@ public class WorldServer extends World implements vn {
+         this.m_portals.a(this.getGameTime());
+         this.methodProfiler.checkIfTakingTooLong();
+         this.ak();
++        
++        // Chunk GC
++        chunkGCTickCount++;
++
++        if (chunkGCTickCount >= 200) {
++            chunkGCTickCount = 0;
++        } else {
++            return;
++        }
++
++        for (Chunk chunk : ((List<Chunk>)cachedChunks.loadedChunkList)) {
++            // If in use, skip it
++            if (m_chunkMap.longHashMapContainsKey(chunk.xPos, chunk.zPos)) {
++                continue;
++            }
++
++            // Already unloading?
++            if (cachedChunks.setOfChunksToSaveAndUnload.contains(Long.valueOf(
++                    ChunkCoordIntPair.combineTwoIntsIntoLong(chunk.xPos, chunk.zPos)))) {
++                continue;
++            }
++
++            // Add unload request
++            cachedChunks.markChunkEligibleForUnload(chunk.xPos, chunk.zPos);
++        }
+     }
+ 
+     public MobSpawnRelatedClass a(GeneralMobType var1, IntegerCoordinates var2) {
