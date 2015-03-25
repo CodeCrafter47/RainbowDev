@@ -1,0 +1,32 @@
+diff --git a/src/joebkt/WorldNBTStorage.java b/src/joebkt/WorldNBTStorage.java
+index 8a97cf3..7218c0f 100644
+--- a/src/joebkt/WorldNBTStorage.java
++++ b/src/joebkt/WorldNBTStorage.java
+@@ -173,11 +173,26 @@ public class WorldNBTStorage implements IDataManager, IPlayerFileData {
+ 
+         try {
+             File var4 = new File(this.c, var1.getUUID().toString() + ".dat");
++            // Spigot Start
++            boolean usingWrongFile = false;
++            if (!var4.exists()) {
++               var4 = new File(this.c, java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + var1.getName()).getBytes("UTF-8")).toString() + ".dat");
++                if (var4.exists()) {
++                    usingWrongFile = true;
++                    a.warn("Using offline mode UUID file for player " + var1.getName() + " as it is the only copy we can find.");
++                }
++            }
++            // Spigot End
+ 
+             if (var4.exists() && var4.isFile()) {
+                 var2 = NBTTagInputRelated.a(
+                         (InputStream) (new FileInputStream(var4)));
+             }
++            // Spigot Start
++            if (usingWrongFile) {
++                var4.renameTo(new File(var4.getPath() + ".offline-read"));
++            }
++            // Spigot End
+         } catch (Exception var41) {
+             a.warn("Failed to load player data for " + var1.getName());
+         }
+
