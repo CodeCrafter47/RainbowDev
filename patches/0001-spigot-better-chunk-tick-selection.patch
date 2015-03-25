@@ -185,12 +185,12 @@ diff --git a/src/joebkt/_CmdDIW.java b/src/joebkt/_CmdDIW.java
 index 8fad73a..9fecdaa 100644
 --- a/src/joebkt/_CmdDIW.java
 +++ b/src/joebkt/_CmdDIW.java
-@@ -3484,7 +3484,7 @@ public class _CmdDIW extends CommandAbstract {
+@@ -3519,7 +3519,7 @@ public class _CmdDIW extends CommandAbstract {
                                                      name,
-                                                     Integer.valueOf(var125),
+                                                     Integer.valueOf(var126),
                                                      Integer.valueOf(
--                                                            var124.chunksVisibleToPlayers.size()),
-+                                                            var124.chunkTickList.size()),
+-                                                            var125.chunksVisibleToPlayers.size()),
++                                                            var125.chunkTickList.size()),
                                                      Integer.valueOf(
-                                                             var124.cachedChunks.getSize())}));
+                                                             var125.cachedChunks.getSize())}));
                                              }

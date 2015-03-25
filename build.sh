@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RAINBOW_VERSION=50
+RAINBOW_VERSION=51
 
 echo "cleaning old stuff"
 
