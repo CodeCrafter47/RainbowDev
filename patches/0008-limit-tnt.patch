@@ -1,0 +1,29 @@
+diff --git a/src/joebkt/PrimedTnt.java b/src/joebkt/PrimedTnt.java
+index 68a8bc2..32f20fc 100644
+--- a/src/joebkt/PrimedTnt.java
++++ b/src/joebkt/PrimedTnt.java
+@@ -13,6 +13,9 @@ public class PrimedTnt extends EntityGeneric {
+     public int fuse;
+     private EntityLiving b;
+ 
++    private static int currentTNTExplosions;
++    private static int currentTick;
++
+     public PrimedTnt(World var1) {
+         super(var1);
+         this.k = true;
+@@ -45,6 +48,14 @@ public class PrimedTnt extends EntityGeneric {
+     }
+ 
+     public void doEntityTick() {
++        int tickCounter = net.minecraft.server.MinecraftServer.getServer().ar();
++        if(currentTick != tickCounter){
++            currentTick = tickCounter;
++            currentTNTExplosions = 0;
++        }
++        if(fuse < 2 && currentTNTExplosions++ > 15){
++            fuse = 2;
++        }
+         this.lastX = this.xCoord;
+         this.lastY = this.yCoord;
+         this.lastZ = this.zCoord;
