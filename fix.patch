@@ -120,3 +120,16 @@ index 06f6b99..0bad407 100644
      }
  
      private void ioProcessLoop() {
+diff --git a/src/joebkt/BlockTNT.java b/src/joebkt/BlockTNT.java
+index dc993e7..4c31c88 100644
+--- a/src/joebkt/BlockTNT.java
++++ b/src/joebkt/BlockTNT.java
+@@ -88,7 +88,7 @@ public class BlockTNT extends BlockObject {
+ 
+             if (var9 == Items.flint_and_steel || var9 == Items.fire_charge) {
+                 this.a(var1, var2,
+-                        var3.setProperty(a_explode, Boolean.valueOf(true)), var4);
++                        var3.setProperty(a_explode, Boolean.valueOf(true)), (EntityLiving)var4);
+                 var1.setToAir(var2);
+                 if (var9 == Items.flint_and_steel) {
+                     var4.getItemInHand().handleItemWasUsed_PerformWearTear(1,
