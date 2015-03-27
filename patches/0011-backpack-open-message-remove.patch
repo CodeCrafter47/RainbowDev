@@ -1,7 +1,7 @@
-diff --git a/joebkt/_CmdBackpack.java b/joebkt/_CmdBackpack.java
+diff --git a/src/joebkt/_CmdBackpack.java b/src/joebkt/_CmdBackpack.java
 index 1beb088..594ff95 100644
---- a/joebkt/_CmdBackpack.java
-+++ b/joebkt/_CmdBackpack.java
+--- a/src/joebkt/_CmdBackpack.java
++++ b/src/joebkt/_CmdBackpack.java
 @@ -36,7 +36,6 @@ public class _CmdBackpack extends CommandAbstract {
          if (var1 instanceof EntityPlayer) {
              p = (EntityPlayer) var1;

@@ -1,7 +1,7 @@
-diff --git a/WrapperObjects/ItemStackWrapper.java b/WrapperObjects/ItemStackWrapper.java
+diff --git a/src/WrapperObjects/ItemStackWrapper.java b/src/WrapperObjects/ItemStackWrapper.java
 index b1a3fdd..2f0f776 100644
---- a/WrapperObjects/ItemStackWrapper.java
-+++ b/WrapperObjects/ItemStackWrapper.java
+--- a/src/WrapperObjects/ItemStackWrapper.java
++++ b/src/WrapperObjects/ItemStackWrapper.java
 @@ -126,7 +126,6 @@ public class ItemStackWrapper implements MC_ItemStack {
              }
  
