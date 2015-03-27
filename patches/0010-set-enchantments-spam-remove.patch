@@ -1,0 +1,20 @@
+diff --git a/src/WrapperObjects/ItemStackWrapper.java b/src/WrapperObjects/ItemStackWrapper.java
+index b1a3fdd..754a990 100644
+--- a/src/WrapperObjects/ItemStackWrapper.java
++++ b/src/WrapperObjects/ItemStackWrapper.java
+@@ -126,7 +126,6 @@ public class ItemStackWrapper implements MC_ItemStack {
+             }
+ 
+             EnchantmentManager.applyEnchantsToItem(map, this.is);
+-            System.out.println("Set " + map.size() + "enchants.");
+         }
+     }
+ 
+@@ -147,7 +146,6 @@ public class ItemStackWrapper implements MC_ItemStack {
+             }
+ 
+             EnchantmentManager.applyEnchantsToItem(map, this.is);
+-            System.out.println("Set " + map.size() + "enchants.");
+         }
+     }
+ 
