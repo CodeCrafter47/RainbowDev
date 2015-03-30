@@ -1,0 +1,13 @@
+diff --git a/src/WrapperObjects/WorldWrapper.java b/src/WrapperObjects/WorldWrapper.java
+index 0205dfb..9674562 100644
+--- a/src/WrapperObjects/WorldWrapper.java
++++ b/src/WrapperObjects/WorldWrapper.java
+@@ -202,7 +202,7 @@ public class WorldWrapper implements MC_World {
+         return ruleType == MC_GameRuleType.DO_FIRE_TICK
+                 ? this.world.getGameRules().getEntry("doFireTick")
+                 : (ruleType == MC_GameRuleType.MOB_GRIEFING
+-                        ? this.world.getGameRules().getEntry("mobGriefing")
++                        ? this.world.getGameRules().getEntry("doMobGriefing")
+                         : (ruleType == MC_GameRuleType.KEEP_INVENTORY
+                                 ? this.world.getGameRules().getEntry(
+                                         "keepInventory")
