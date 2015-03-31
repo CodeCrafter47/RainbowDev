@@ -1,0 +1,252 @@
+diff --git a/src/WrapperObjects/WorldWrapper.java b/src/WrapperObjects/WorldWrapper.java
+index 0205dfb..9674562 100644
+--- a/src/WrapperObjects/WorldWrapper.java
++++ b/src/WrapperObjects/WorldWrapper.java
+@@ -202,7 +202,7 @@ public class WorldWrapper implements MC_World {
+         return ruleType == MC_GameRuleType.DO_FIRE_TICK
+                 ? this.world.getGameRules().getEntry("doFireTick")
+                 : (ruleType == MC_GameRuleType.MOB_GRIEFING
+-                        ? this.world.getGameRules().getEntry("mobGriefing")
++                        ? this.world.getGameRules().getEntry("doMobGriefing")
+                         : (ruleType == MC_GameRuleType.KEEP_INVENTORY
+                                 ? this.world.getGameRules().getEntry(
+                                         "keepInventory")
+diff --git a/src/WrapperObjects/WorldWrapper.java b/src/WrapperObjects/WorldWrapper.java
+index 9674562..d8314d1 100644
+--- a/src/WrapperObjects/WorldWrapper.java
++++ b/src/WrapperObjects/WorldWrapper.java
+@@ -258,7 +258,7 @@ public class WorldWrapper implements MC_World {
+         }
+ 
+         if (ruleType == MC_GameRuleType.MOB_GRIEFING) {
+-            this.world.getGameRules().setGameRuleValue("mobGriefing", newVal,
++            this.world.getGameRules().setGameRuleValue("doMobGriefing", newVal,
+                     EnumAnyBoolOrNumeric.BOOLEAN_VALUE);
+         }
+ 
+diff --git a/src/joebkt/BlockSoil.java b/src/joebkt/BlockSoil.java
+index d626e62..41cb881 100644
+--- a/src/joebkt/BlockSoil.java
++++ b/src/joebkt/BlockSoil.java
+@@ -77,7 +77,7 @@ public class BlockSoil extends BlockObject {
+         if (argEnt instanceof EntityLiving) {
+             if (!argWorld.isStatic && argWorld.random.nextFloat() < var4 - 0.5F) {
+                 if (!(argEnt instanceof EntityHuman)
+-                        && !argWorld.getGameRules().getEntry("mobGriefing")) {
++                        && !argWorld.getGameRules().getEntry("doMobGriefing")) {
+                     return;
+                 }
+ 
+diff --git a/src/joebkt/Creeper.java b/src/joebkt/Creeper.java
+index d89280a..b1ddb09 100644
+--- a/src/joebkt/Creeper.java
++++ b/src/joebkt/Creeper.java
+@@ -215,7 +215,7 @@ public class Creeper extends Monster {
+ 
+     private void cp() {
+         if (!this.worldEnt.isStatic) {
+-            boolean var1 = this.worldEnt.getGameRules().getEntry("mobGriefing");
++            boolean var1 = this.worldEnt.getGameRules().getEntry("doMobGriefing");
+ 
+             if (this.n()) {
+                 this.worldEnt.createExplosionWrapper(this, this.xCoord,
+diff --git a/src/joebkt/EnderDragon.java b/src/joebkt/EnderDragon.java
+index aa112a5..96a3a1c 100644
+--- a/src/joebkt/EnderDragon.java
++++ b/src/joebkt/EnderDragon.java
+@@ -539,7 +539,7 @@ public class EnderDragon extends EntityInsentient implements acw_acxEntityRelate
+                                 && var13 != Blocks.BEDROCK
+                                 && var13 != Blocks.COMMAND_BLOCK
+                                 && this.worldEnt.getGameRules().getEntry(
+-                                "mobGriefing")) {
++                                "doMobGriefing")) {
+                             IntegerCoordinates var14 = new IntegerCoordinates(
+                                     var16, var11, var17);
+ 
+diff --git a/src/joebkt/EndermanPickupBlockGoal.java b/src/joebkt/EndermanPickupBlockGoal.java
+index 7cc514e..c220ee0 100644
+--- a/src/joebkt/EndermanPickupBlockGoal.java
++++ b/src/joebkt/EndermanPickupBlockGoal.java
+@@ -24,7 +24,7 @@ class EndermanPickupBlockGoal extends GoalABC {
+     }
+ 
+     public boolean shouldGoalTick() {
+-        return !this.m_enderman.worldEnt.getGameRules().getEntry("mobGriefing")
++        return !this.m_enderman.worldEnt.getGameRules().getEntry("doMobGriefing")
+                 ? false
+                 : (this.m_enderman.getCarriedBlock().toBlockObject().getMaterial()
+                         != Material.AIR
+diff --git a/src/joebkt/EndermanPutDownBlockGoal.java b/src/joebkt/EndermanPutDownBlockGoal.java
+index f44b942..e33e1f4 100644
+--- a/src/joebkt/EndermanPutDownBlockGoal.java
++++ b/src/joebkt/EndermanPutDownBlockGoal.java
+@@ -23,7 +23,7 @@ class EndermanPutDownBlockGoal extends GoalABC {
+     }
+ 
+     public boolean shouldGoalTick() {
+-        return !this.m_enderman.worldEnt.getGameRules().getEntry("mobGriefing")
++        return !this.m_enderman.worldEnt.getGameRules().getEntry("doMobGriefing")
+                 ? false
+                 : (this.m_enderman.getCarriedBlock().toBlockObject().getMaterial()
+                         == Material.AIR
+diff --git a/src/joebkt/EntityInsentient.java b/src/joebkt/EntityInsentient.java
+index cdb5600..577ccf6 100644
+--- a/src/joebkt/EntityInsentient.java
++++ b/src/joebkt/EntityInsentient.java
+@@ -356,7 +356,7 @@ public abstract class EntityInsentient extends EntityLiving {
+         super.tickCustomForThisEntity();
+         this.worldEnt.methodProfiler.capture("looting");
+         if (!this.worldEnt.isStatic && this.canPickupLoot() && !this.aN
+-                && this.worldEnt.getGameRules().getEntry("mobGriefing")) {
++                && this.worldEnt.getGameRules().getEntry("doMobGriefing")) {
+             List var1 = this.worldEnt.getMobsOnlyInRange(ItemEntity.class,
+                     this.funcAppliesIfCanBePushed().b(1.0D, 0.0D, 1.0D));
+             Iterator var2 = var1.iterator();
+diff --git a/src/joebkt/Fireball.java b/src/joebkt/Fireball.java
+index 13492b5..ea89a0d 100644
+--- a/src/joebkt/Fireball.java
++++ b/src/joebkt/Fireball.java
+@@ -31,7 +31,7 @@ public class Fireball extends EntityFireball {
+                 this.a(this.a, var1.ent);
+             }
+ 
+-            boolean var2 = this.worldEnt.getGameRules().getEntry("mobGriefing");
++            boolean var2 = this.worldEnt.getGameRules().getEntry("doMobGriefing");
+ 
+             this.worldEnt.createExplosion((EntityGeneric) null, this.xCoord,
+                     this.yCoord, this.zCoord, (float) this.explosionPower, var2,
+diff --git a/src/joebkt/GameRules.java b/src/joebkt/GameRules.java
+index 2e1e432..d4775c8 100644
+--- a/src/joebkt/GameRules.java
++++ b/src/joebkt/GameRules.java
+@@ -16,7 +16,7 @@ public class GameRules {
+     public GameRules() {
+         this.setGameRuleValue("doFireTick", "true",
+                 EnumAnyBoolOrNumeric.BOOLEAN_VALUE);
+-        this.setGameRuleValue("mobGriefing", "true",
++        this.setGameRuleValue("doMobGriefing", "true",
+                 EnumAnyBoolOrNumeric.BOOLEAN_VALUE);
+         this.setGameRuleValue("keepInventory", "false",
+                 EnumAnyBoolOrNumeric.BOOLEAN_VALUE);
+diff --git a/src/joebkt/Rabbit_AI.java b/src/joebkt/Rabbit_AI.java
+index f57fd59..fc139c4 100644
+--- a/src/joebkt/Rabbit_AI.java
++++ b/src/joebkt/Rabbit_AI.java
+@@ -26,7 +26,7 @@ class Rabbit_AI extends PersonalityGoal_ABC {
+ 
+     public boolean shouldGoalTick() {
+         if (this.a_inc200 <= 0) {
+-            if (!this.rabbit.worldEnt.getGameRules().getEntry("mobGriefing")) {
++            if (!this.rabbit.worldEnt.getGameRules().getEntry("doMobGriefing")) {
+                 return false;
+             }
+ 
+diff --git a/src/joebkt/SheepGrazingGoal.java b/src/joebkt/SheepGrazingGoal.java
+index 85aeeff..050956c 100644
+--- a/src/joebkt/SheepGrazingGoal.java
++++ b/src/joebkt/SheepGrazingGoal.java
+@@ -70,7 +70,7 @@ public class SheepGrazingGoal extends GoalABC {
+                     this.m_sheep.zCoord);
+ 
+             if (grassPredicate.apply(this.m_world.getBlockStateAt(griefCoords))) {
+-                if (this.m_world.getGameRules().getEntry("mobGriefing")
++                if (this.m_world.getGameRules().getEntry("doMobGriefing")
+                         && _PluginEventMgr.triggerMobGrief(this.m_sheep,
+                         griefCoords, MC_MiscGriefType.SHEEP_GRAZING_GRASS)) {
+                     this.m_world.breakBlockAtLocation_flagIndicatesTileDrop(
+@@ -83,7 +83,7 @@ public class SheepGrazingGoal extends GoalABC {
+ 
+                 if (this.m_world.getBlockStateAt(var2).toBlockObject()
+                         == Blocks.GRASS) {
+-                    if (this.m_world.getGameRules().getEntry("mobGriefing")
++                    if (this.m_world.getGameRules().getEntry("doMobGriefing")
+                             && _PluginEventMgr.triggerMobGrief(this.m_sheep,
+                             griefCoords, MC_MiscGriefType.SHEEP_GRAZING_GRASS)) {
+                         this.m_world.triggerEffect(2001, var2,
+diff --git a/src/joebkt/SilverfishGoal_BreakNearbyEggBlocks.java b/src/joebkt/SilverfishGoal_BreakNearbyEggBlocks.java
+index 748de85..85099dc 100644
+--- a/src/joebkt/SilverfishGoal_BreakNearbyEggBlocks.java
++++ b/src/joebkt/SilverfishGoal_BreakNearbyEggBlocks.java
+@@ -54,7 +54,7 @@ class SilverfishGoal_BreakNearbyEggBlocks extends GoalABC {
+                         IBlockState var8 = var1.getBlockStateAt(griefCoords);
+ 
+                         if (var8.toBlockObject() == Blocks.monster_egg) {
+-                            if (var1.getGameRules().getEntry("mobGriefing")
++                            if (var1.getGameRules().getEntry("doMobGriefing")
+                                     && _PluginEventMgr.triggerMobGrief(
+                                             this.m_silverfish, griefCoords,
+                                             MC_MiscGriefType.SILVERFISH_BREAK_MONSTER_EGG_BLOCK)) {
+diff --git a/src/joebkt/SmallFireball.java b/src/joebkt/SmallFireball.java
+index 45160a5..75ff222 100644
+--- a/src/joebkt/SmallFireball.java
++++ b/src/joebkt/SmallFireball.java
+@@ -50,7 +50,7 @@ public class SmallFireball extends EntityFireball {
+                     exc = true;
+                     if (this.a != null && this.a instanceof EntityInsentient) {
+                         exc = this.worldEnt.getGameRules().getEntry(
+-                                "mobGriefing");
++                                "doMobGriefing");
+                     }
+ 
+                     if (exc) {
+diff --git a/src/joebkt/Villager_AI.java b/src/joebkt/Villager_AI.java
+index a23e6a3..06dc4de 100644
+--- a/src/joebkt/Villager_AI.java
++++ b/src/joebkt/Villager_AI.java
+@@ -31,7 +31,7 @@ public class Villager_AI extends PersonalityGoal_ABC {
+ 
+     public boolean shouldGoalTick() {
+         if (this.a_inc200 <= 0) {
+-            if (!this.m_villager.worldEnt.getGameRules().getEntry("mobGriefing")) {
++            if (!this.m_villager.worldEnt.getGameRules().getEntry("doMobGriefing")) {
+                 return false;
+             }
+ 
+diff --git a/src/joebkt/WitherBoss.java b/src/joebkt/WitherBoss.java
+index 4c75f92..ae0e653 100644
+--- a/src/joebkt/WitherBoss.java
++++ b/src/joebkt/WitherBoss.java
+@@ -236,7 +236,7 @@ public class WitherBoss extends Monster implements RangedAttackGoalInterface {
+                 this.worldEnt.createExplosion(this, this.xCoord,
+                         this.yCoord + (double) this.currentYOffset(),
+                         this.zCoord, 7.0F, false,
+-                        this.worldEnt.getGameRules().getEntry("mobGriefing"));
++                        this.worldEnt.getGameRules().getEntry("doMobGriefing"));
+                 this.worldEnt.funcNotifyEntityTrackerRelated3(1013,
+                         new IntegerCoordinates(this), 0);
+             }
+@@ -334,7 +334,7 @@ public class WitherBoss extends Monster implements RangedAttackGoalInterface {
+             if (this.bo > 0) {
+                 --this.bo;
+                 if (this.bo == 0
+-                        && this.worldEnt.getGameRules().getEntry("mobGriefing")) {
++                        && this.worldEnt.getGameRules().getEntry("doMobGriefing")) {
+                     var1 = MathHelper.floor_of_double(this.yCoord);
+                     var12 = MathHelper.floor_of_double(this.xCoord);
+                     var15 = MathHelper.floor_of_double(this.zCoord);
+diff --git a/src/joebkt/WitherSkull.java b/src/joebkt/WitherSkull.java
+index 96020be..a710e21 100644
+--- a/src/joebkt/WitherSkull.java
++++ b/src/joebkt/WitherSkull.java
+@@ -84,7 +84,7 @@ public class WitherSkull extends EntityFireball {
+ 
+             this.worldEnt.createExplosion(this, this.xCoord, this.yCoord,
+                     this.zCoord, 1.0F, false,
+-                    this.worldEnt.getGameRules().getEntry("mobGriefing"));
++                    this.worldEnt.getGameRules().getEntry("doMobGriefing"));
+             this.killEntity();
+         }
+ 
+diff --git a/src/joebkt/ZombieDoorBreakGoal.java b/src/joebkt/ZombieDoorBreakGoal.java
+index b9bc2cf..7e4e5d7 100644
+--- a/src/joebkt/ZombieDoorBreakGoal.java
++++ b/src/joebkt/ZombieDoorBreakGoal.java
+@@ -22,7 +22,7 @@ public class ZombieDoorBreakGoal extends DoorInteractGoal {
+     public boolean shouldGoalTick() {
+         if (!super.shouldGoalTick()) {
+             return false;
+-        } else if (!this.m_entity.worldEnt.getGameRules().getEntry("mobGriefing")) {
++        } else if (!this.m_entity.worldEnt.getGameRules().getEntry("doMobGriefing")) {
+             return false;
+         } else {
+             BlockNewDoor var10000 = this.doorInterestedIn;
