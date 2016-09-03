@@ -1,0 +1,24 @@
+--- a/net/minecraft/server/RecipeTippedArrow.java
++++ b/net/minecraft/server/RecipeTippedArrow.java
+@@ -3,11 +3,19 @@
+ import java.util.Collection;
+ import javax.annotation.Nullable;
+ 
+-class RecipeTippedArrow implements IRecipe {
++class RecipeTippedArrow extends ShapedRecipes implements IRecipe { // CraftBukkit
+ 
+     private static final ItemStack[] a = new ItemStack[9];
+ 
+-    RecipeTippedArrow() {}
++    // CraftBukkit start
++    RecipeTippedArrow() {
++        super(3, 3, new ItemStack[]{
++            new ItemStack(Items.ARROW, 0), new ItemStack(Items.ARROW, 0), new ItemStack(Items.ARROW, 0),
++            new ItemStack(Items.ARROW, 0), new ItemStack(Items.LINGERING_POTION, 0), new ItemStack(Items.ARROW, 0),
++            new ItemStack(Items.ARROW, 0), new ItemStack(Items.ARROW, 0), new ItemStack(Items.ARROW, 0)
++        }, new ItemStack(Items.TIPPED_ARROW, 8));
++    }
++    // CraftBukkit end
+ 
+     public boolean a(InventoryCrafting inventorycrafting, World world) {
+         if (inventorycrafting.i() == 3 && inventorycrafting.h() == 3) {

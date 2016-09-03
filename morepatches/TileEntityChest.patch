@@ -1,0 +1,116 @@
+--- a/net/minecraft/server/TileEntityChest.java
++++ b/net/minecraft/server/TileEntityChest.java
+@@ -4,6 +4,11 @@
+ import java.util.List;
+ import javax.annotation.Nullable;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftHumanEntity;
++import org.bukkit.entity.HumanEntity;
++// CraftBukkit end
++
+ public class TileEntityChest extends TileEntityLootable implements ITickable, IInventory {
+ 
+     private ItemStack[] items = new ItemStack[27];
+@@ -21,6 +26,31 @@
+ 
+     public TileEntityChest() {}
+ 
++    // CraftBukkit start - add fields and methods
++    public List<HumanEntity> transaction = new java.util.ArrayList<HumanEntity>();
++    private int maxStack = MAX_STACK;
++
++    public ItemStack[] getContents() {
++        return this.items;
++    }
++
++    public void onOpen(CraftHumanEntity who) {
++        transaction.add(who);
++    }
++
++    public void onClose(CraftHumanEntity who) {
++        transaction.remove(who);
++    }
++
++    public List<HumanEntity> getViewers() {
++        return transaction;
++    }
++
++    public void setMaxStackSize(int size) {
++        maxStack = size;
++    }
++    // CraftBukkit end
++
+     public TileEntityChest(BlockChest.Type blockchest_type) {
+         this.q = blockchest_type;
+     }
+@@ -127,10 +157,11 @@
+     }
+ 
+     public int getMaxStackSize() {
+-        return 64;
++        return maxStack; // CraftBukkit
+     }
+ 
+     public boolean a(EntityHuman entityhuman) {
++        if (this.world == null) return true; // CraftBukkit
+         return this.world.getTileEntity(this.position) != this ? false : entityhuman.e((double) this.position.getX() + 0.5D, (double) this.position.getY() + 0.5D, (double) this.position.getZ() + 0.5D) <= 64.0D;
+     }
+ 
+@@ -307,9 +338,21 @@
+             if (this.l < 0) {
+                 this.l = 0;
+             }
++            int oldPower = Math.max(0, Math.min(15, this.l)); // CraftBukkit - Get power before new viewer is added
+ 
+             ++this.l;
++            if (this.world == null) return; // CraftBukkit
+             this.world.playBlockAction(this.position, this.getBlock(), 1, this.l);
++
++            // CraftBukkit start - Call redstone event
++            if (this.getBlock() == Blocks.TRAPPED_CHEST) {
++                int newPower = Math.max(0, Math.min(15, this.l));
++
++                if (oldPower != newPower) {
++                    org.bukkit.craftbukkit.event.CraftEventFactory.callRedstoneChange(world, position.getX(), position.getY(), position.getZ(), oldPower, newPower);
++                }
++            }
++            // CraftBukkit end
+             this.world.applyPhysics(this.position, this.getBlock());
+             this.world.applyPhysics(this.position.down(), this.getBlock());
+         }
+@@ -318,8 +361,20 @@
+ 
+     public void closeContainer(EntityHuman entityhuman) {
+         if (!entityhuman.isSpectator() && this.getBlock() instanceof BlockChest) {
++            int oldPower = Math.max(0, Math.min(15, this.l)); // CraftBukkit - Get power before new viewer is added
+             --this.l;
++            if (this.world == null) return; // CraftBukkit
+             this.world.playBlockAction(this.position, this.getBlock(), 1, this.l);
++
++            // CraftBukkit start - Call redstone event
++            if (this.getBlock() == Blocks.TRAPPED_CHEST) {
++                int newPower = Math.max(0, Math.min(15, this.l));
++
++                if (oldPower != newPower) {
++                    org.bukkit.craftbukkit.event.CraftEventFactory.callRedstoneChange(world, position.getX(), position.getY(), position.getZ(), oldPower, newPower);
++                }
++            }
++            // CraftBukkit end
+             this.world.applyPhysics(this.position, this.getBlock());
+             this.world.applyPhysics(this.position.down(), this.getBlock());
+         }
+@@ -376,6 +431,13 @@
+ 
+     }
+ 
++    // CraftBukkit start
++    @Override
++    public boolean isFilteredNBT() {
++        return true;
++    }
++    // CraftBukkit end
++
+     static class SyntheticClass_1 {
+ 
+         static final int[] a = new int[EnumDirection.values().length];

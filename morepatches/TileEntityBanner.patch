@@ -1,0 +1,26 @@
+--- a/net/minecraft/server/TileEntityBanner.java
++++ b/net/minecraft/server/TileEntityBanner.java
+@@ -21,6 +21,11 @@
+ 
+             if (nbttagcompound.hasKey("Patterns")) {
+                 this.patterns = nbttagcompound.getList("Patterns", 10).d();
++                // CraftBukkit start
++                while (this.patterns.size() > 20) {
++                    this.patterns.remove(20);
++                }
++                // CraftBukkit end
+             }
+ 
+             if (nbttagcompound.hasKeyOfType("Base", 99)) {
+@@ -56,6 +61,11 @@
+         super.a(nbttagcompound);
+         this.color = nbttagcompound.getInt("Base");
+         this.patterns = nbttagcompound.getList("Patterns", 10);
++        // CraftBukkit start
++        while (this.patterns.size() > 20) {
++            this.patterns.remove(20);
++        }
++        // CraftBukkit end
+         this.h = null;
+         this.i = null;
+         this.j = null;
