@@ -35,6 +35,7 @@ rm src/joebkt/hb.java
 rm src/joebkt/hc.java
 git apply fix.patch || exit 1
 git apply patches/*.patch || exit 1
+git apply morepatches/*.patch || exit 1
 #for file in "patches/"*".patch"
 #do
 #  echo "applying $file"
