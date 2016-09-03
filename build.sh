@@ -35,6 +35,10 @@ rm src/joebkt/hb.java
 rm src/joebkt/hc.java
 git apply fix.patch || exit 1
 git apply patches/*.patch || exit 1
+echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+echo "if you get the same error as last time then theres no class by that name"
+echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+git apply morepatches/*.patch || exit 1
 #for file in "patches/"*".patch"
 #do
 #  echo "applying $file"

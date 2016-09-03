@@ -1,0 +1,45 @@
+--- a/net/minecraft/server/TileEntityBeacon.java
++++ b/net/minecraft/server/TileEntityBeacon.java
+@@ -9,6 +9,11 @@
+ import java.util.Set;
+ import javax.annotation.Nullable;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftHumanEntity;
++import org.bukkit.entity.HumanEntity;
++// CraftBukkit end
++
+ public class TileEntityBeacon extends TileEntityContainer implements ITickable, IWorldInventory {
+ 
+     public static final MobEffectList[][] a = new MobEffectList[][] { { MobEffects.FASTER_MOVEMENT, MobEffects.FASTER_DIG}, { MobEffects.RESISTANCE, MobEffects.JUMP}, { MobEffects.INCREASE_DAMAGE}, { MobEffects.REGENERATION}};
+@@ -22,6 +27,30 @@
+     private MobEffectList m;
+     private ItemStack inventorySlot;
+     private String o;
++    // CraftBukkit start - add fields and methods
++    public List<HumanEntity> transaction = new java.util.ArrayList<HumanEntity>();
++    private int maxStack = MAX_STACK;
++
++    public ItemStack[] getContents() {
++        return new ItemStack[] { this.inventorySlot };
++    }
++
++    public void onOpen(CraftHumanEntity who) {
++        transaction.add(who);
++    }
++
++    public void onClose(CraftHumanEntity who) {
++        transaction.remove(who);
++    }
++
++    public List<HumanEntity> getViewers() {
++        return transaction;
++    }
++
++    public void setMaxStackSize(int size) {
++        maxStack = size;
++    }
++    // CraftBukkit end
+ 
+     public TileEntityBeacon() {}
+ 
