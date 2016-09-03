@@ -1,0 +1,86 @@
+--- a/net/minecraft/server/ContainerPlayer.java
++++ b/net/minecraft/server/ContainerPlayer.java
+@@ -1,6 +1,10 @@
+ package net.minecraft.server;
+ 
+ import javax.annotation.Nullable;
++// CraftBukkit start
++import org.bukkit.craftbukkit.inventory.CraftInventoryCrafting;
++import org.bukkit.craftbukkit.inventory.CraftInventoryView;
++// CraftBukkit end
+ 
+ public class ContainerPlayer extends Container {
+ 
+@@ -9,10 +13,20 @@
+     public IInventory resultInventory = new InventoryCraftResult();
+     public boolean g;
+     private final EntityHuman owner;
++    // CraftBukkit start
++    private CraftInventoryView bukkitEntity = null;
++    private PlayerInventory player;
++    // CraftBukkit end
+ 
+     public ContainerPlayer(final PlayerInventory playerinventory, boolean flag, EntityHuman entityhuman) {
+         this.g = flag;
+         this.owner = entityhuman;
++        // CraftBukkit start
++        this.resultInventory = new InventoryCraftResult(); // CraftBukkit - moved to before InventoryCrafting construction
++        this.craftInventory = new InventoryCrafting(this, 2, 2, playerinventory.player); // CraftBukkit - pass player
++        this.craftInventory.resultInventory = this.resultInventory; // CraftBukkit - let InventoryCrafting know about its result slot
++        this.player = playerinventory; // CraftBukkit - save player
++        // CraftBukkit end
+         this.a((Slot) (new SlotResult(playerinventory.player, this.craftInventory, this.resultInventory, 0, 154, 28)));
+ 
+         int i;
+@@ -25,7 +39,7 @@
+         }
+ 
+         for (i = 0; i < 4; ++i) {
+-            final EnumItemSlot enumitemslot = ContainerPlayer.h[i];
++            final EnumItemSlot enumitemslot1 = ContainerPlayer.h[i];
+ 
+             this.a(new Slot(playerinventory, 36 + (3 - i), 8, 8 + i * 18) {
+                 public int getMaxStackSize() {
+@@ -59,11 +73,22 @@
+                 return super.isAllowed(itemstack);
+             }
+         });
+-        this.a((IInventory) this.craftInventory);
++        // this.a((IInventory) this.craftInventory); // CraftBukkit - unneeded since it just sets result slot to empty
+     }
+ 
+     public void a(IInventory iinventory) {
+-        this.resultInventory.setItem(0, CraftingManager.getInstance().craft(this.craftInventory, this.owner.world));
++        // this.resultInventory.setItem(0, CraftingManager.getInstance().craft(this.craftInventory, this.owner.world));
++        // CraftBukkit start (Note: the following line would cause an error if called during construction)
++        CraftingManager.getInstance().lastCraftView = getBukkitView();
++        ItemStack craftResult = CraftingManager.getInstance().craft(this.craftInventory, this.owner.world);
++        this.resultInventory.setItem(0, craftResult);
++        if (super.listeners.size() < 1) {
++            return;
++        }
++
++        EntityPlayer player = (EntityPlayer) super.listeners.get(0); // TODO: Is this _always_ correct? Seems like it.
++        player.playerConnection.sendPacket(new PacketPlayOutSetSlot(player.activeContainer.windowId, 0, craftResult));
++        // CraftBukkit end
+     }
+ 
+     public void b(EntityHuman entityhuman) {
+@@ -150,4 +175,17 @@
+     public boolean a(ItemStack itemstack, Slot slot) {
+         return slot.inventory != this.resultInventory && super.a(itemstack, slot);
+     }
++
++    // CraftBukkit start
++    @Override
++    public CraftInventoryView getBukkitView() {
++        if (bukkitEntity != null) {
++            return bukkitEntity;
++        }
++
++        CraftInventoryCrafting inventory = new CraftInventoryCrafting(this.craftInventory, this.resultInventory);
++        bukkitEntity = new CraftInventoryView(this.player.player.getBukkitEntity(), inventory, this);
++        return bukkitEntity;
++    }
++    // CraftBukkit end
+ }
