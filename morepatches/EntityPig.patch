@@ -1,0 +1,34 @@
+--- a/net/minecraft/server/EntityPig.java
++++ b/net/minecraft/server/EntityPig.java
+@@ -5,6 +5,8 @@
+ import java.util.Set;
+ import javax.annotation.Nullable;
+ 
++import org.bukkit.craftbukkit.event.CraftEventFactory; // CraftBukkit
++
+ public class EntityPig extends EntityAnimal {
+ 
+     private static final DataWatcherObject<Boolean> bx = DataWatcher.a(EntityPig.class, DataWatcherRegistry.h);
+@@ -137,6 +139,12 @@
+         if (!this.world.isClientSide && !this.dead) {
+             EntityPigZombie entitypigzombie = new EntityPigZombie(this.world);
+ 
++            // CraftBukkit start
++            if (CraftEventFactory.callPigZapEvent(this, entitylightning, entitypigzombie).isCancelled()) {
++                return;
++            }
++            // CraftBukkit end
++
+             entitypigzombie.setSlot(EnumItemSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
+             entitypigzombie.setPositionRotation(this.locX, this.locY, this.locZ, this.yaw, this.pitch);
+             entitypigzombie.setAI(this.hasAI());
+@@ -145,7 +153,8 @@
+                 entitypigzombie.setCustomNameVisible(this.getCustomNameVisible());
+             }
+ 
+-            this.world.addEntity(entitypigzombie);
++            // CraftBukkit - added a reason for spawning this creature
++            this.world.addEntity(entitypigzombie, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.LIGHTNING);
+             this.die();
+         }
+     }
